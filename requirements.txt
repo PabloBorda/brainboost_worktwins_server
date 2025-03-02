@@ -1,0 +1,5 @@
+-e file:///brainboost/packages/brainboost_data_source_package
+-e file:///brainboost/packages/brainboost_configuration_package
+-e file:///brainboost/packages/brainboost_data_source_logger_package
+pandas==2.2.3
+redis
