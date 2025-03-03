@@ -69,7 +69,7 @@ def main():
     try:
         redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
         redis_client.ping()
-        BBLogger.log((f"Connected to Redis at {redis_host}:{redis_port}",telegram=True)
+        BBLogger.log(f"Connected to Redis at {redis_host}:{redis_port}",telegram=True)
     except redis.ConnectionError as e:
         BBLogger.log(f"Failed to connect to Redis at {redis_host}:{redis_port}: {e}",telegram=True)
         sys.exit(1)
