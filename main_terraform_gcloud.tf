@@ -96,7 +96,7 @@ apt-get install -y nodejs >> $${LOGFILE} 2>&1
 cd /home/ubuntu || exit
 echo "Cloning repository from GitHub..." >> $${LOGFILE}
 if [ ! -d "brainboost_data_source_package" ]; then
-  sudo -u ubuntu git clone https://github.com/PabloBorda/brainboost_data_source_package.git >> $${LOGFILE} 2>&1
+  sudo -u ubuntu git clone https://github.com/PabloBorda/brainboost_worktwins_server.git >> $${LOGFILE} 2>&1
 else
   echo "Repository already exists, updating..." >> $${LOGFILE}
   cd brainboost_data_source_package || exit

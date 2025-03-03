@@ -44,6 +44,7 @@ import socket
 import time
 import threading
 from brainboost_configuration_package.BBConfig import BBConfig
+from brainboost_data_source_logger_package.BBLogger import BBLogger
 
 def get_local_ip():
     """
@@ -55,22 +56,22 @@ def get_local_ip():
         ip = s.getsockname()[0]
         s.close()
     except Exception as e:
-        print(f"Error obtaining local IP address: {e}")
+        BBLogger.log(f"Error obtaining local IP address: {e}")
         ip = '127.0.0.1'
     return ip
 
 def main():
     local_ip = get_local_ip()
-    print(f"Local IP address determined: {local_ip}")
+    BBLogger.log(f"Server Local IP address determined: {local_ip}",telegram=True)
     
     redis_host = BBConfig.get('redis_server_ip')
     redis_port = BBConfig.get('redis_server_port')
     try:
         redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
         redis_client.ping()
-        print(f"Connected to Redis at {redis_host}:{redis_port}")
+        BBLogger.log((f"Connected to Redis at {redis_host}:{redis_port}",telegram=True)
     except redis.ConnectionError as e:
-        print(f"Failed to connect to Redis at {redis_host}:{redis_port}: {e}")
+        BBLogger.log(f"Failed to connect to Redis at {redis_host}:{redis_port}: {e}",telegram=True)
         sys.exit(1)
     
     command_channel = f"datasource_commands_{local_ip}"
@@ -79,13 +80,13 @@ def main():
     
     manager_thread = threading.Thread(target=manager.start, daemon=True)
     manager_thread.start()
-    print(f"DataSourceManager started and listening on channel: '{command_channel}'")
+    BBLogger.log(f"DataSourceManager started and listening on channel: '{command_channel}'",telegram=True)
     
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("Shutting down DataSourceManager...")
+        BBLogger.log("Shutting down DataSourceManager...",telegram=True)
         sys.exit(0)
 
 if __name__ == "__main__":
