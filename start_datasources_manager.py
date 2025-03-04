@@ -89,5 +89,8 @@ def main():
         BBLogger.log("Shutting down DataSourceManager...",telegram=True)
         sys.exit(0)
 
+
+BBLogger.log('The current path is ' + str(sys.path))
+
 if __name__ == "__main__":
     main()
