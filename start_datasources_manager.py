@@ -64,8 +64,8 @@ def main():
     local_ip = get_local_ip()
     BBLogger.log(f"Server Local IP address determined: {local_ip}",telegram=True)
     
-    redis_host = BBConfig.get('redis_server_ip')
-    redis_port = BBConfig.get('redis_server_port')
+    redis_host = BBConfig.get('brainboost_server_vm_redis_0')
+    redis_port = BBConfig.get('brainboost_server_vm_redis_port_0')
     try:
         redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
         redis_client.ping()
