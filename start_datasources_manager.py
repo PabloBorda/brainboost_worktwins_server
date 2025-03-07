@@ -12,6 +12,13 @@ receive its network connection information.
 
 import os
 import sys
+import redis
+import json
+import socket
+import time
+import threading
+from brainboost_configuration_package.BBConfig import BBConfig
+from brainboost_data_source_logger_package.BBLogger import BBLogger
 
 # Determine the directory where this script resides.
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -38,13 +45,6 @@ except ModuleNotFoundError as e:
     print("Make sure that an __init__.py file exists in the root of 'brainboost_data_source_package'")
     sys.exit(1)
 
-import redis
-import json
-import socket
-import time
-import threading
-from brainboost_configuration_package.BBConfig import BBConfig
-from brainboost_data_source_logger_package.BBLogger import BBLogger
 
 def get_local_ip():
     """
@@ -60,19 +60,44 @@ def get_local_ip():
         ip = '127.0.0.1'
     return ip
 
+
+def wait_for_redis(redis_host, redis_port, interval=30):
+    """
+    Wait until a connection to the Redis server at redis_host:redis_port is successful.
+    On the first failure, a Telegram notification is sent.
+    Subsequent logs during waiting are local only.
+    Once connected, a Telegram notification is sent and the Redis client is returned.
+    """
+    # Attempt an initial connection
+    try:
+        redis_client = redis.Redis(host=redis_host, port=redis_port, db=0, socket_timeout=5)
+        redis_client.ping()
+        BBLogger.log(f"Connected to Redis at {redis_host}:{redis_port}", telegram=True)
+        return redis_client
+    except Exception as e:
+        BBLogger.log(f"Waiting for Redis server to be available at: {redis_host}:{redis_port}", telegram=True)
+    
+    # Loop until connection is successful.
+    while True:
+        try:
+            redis_client = redis.Redis(host=redis_host, port=redis_port, db=0, socket_timeout=5)
+            redis_client.ping()
+            BBLogger.log(f"Connected to Redis at {redis_host}:{redis_port}", telegram=True)
+            return redis_client
+        except Exception:
+            BBLogger.log("Waiting for Redis server to be available", telegram=False)
+            time.sleep(interval)
+
+
 def main():
     local_ip = get_local_ip()
-    BBLogger.log(f"Server Local IP address determined: {local_ip}",telegram=True)
+    BBLogger.log(f"Server Local IP address determined: {local_ip}", telegram=True)
     
     redis_host = BBConfig.get('brainboost_server_vm_redis_ip_0')
     redis_port = BBConfig.get('brainboost_server_vm_redis_port_0')
-    try:
-        redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
-        redis_client.ping()
-        BBLogger.log(f"Connected to Redis at {redis_host}:{redis_port}",telegram=True)
-    except redis.ConnectionError as e:
-        BBLogger.log(f"Failed to connect to Redis at {redis_host}:{redis_port}: {e}",telegram=True)
-        sys.exit(1)
+    
+    # Wait for the Redis server to be available
+    redis_client = wait_for_redis(redis_host, redis_port)
     
     command_channel = f"datasource_commands_{local_ip}"
     
@@ -80,13 +105,13 @@ def main():
     
     manager_thread = threading.Thread(target=manager.start, daemon=True)
     manager_thread.start()
-    BBLogger.log(f"DataSourceManager started and listening on channel: '{command_channel}'",telegram=True)
+    BBLogger.log(f"DataSourceManager started and listening on channel: '{command_channel}'", telegram=True)
     
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        BBLogger.log("Shutting down DataSourceManager...",telegram=True)
+        BBLogger.log("Shutting down DataSourceManager...", telegram=True)
         sys.exit(0)
 
 
