@@ -93,8 +93,8 @@ def main():
     local_ip = get_local_ip()
     BBLogger.log(f"Server Local IP address determined: {local_ip}", telegram=True)
     
-    redis_host = BBConfig.get('brainboost_server_vm_redis_ip_0')
-    redis_port = BBConfig.get('brainboost_server_vm_redis_port_0')
+    redis_host = BBConfig.get('brainboost_server_vm_redis_private_ip_0')
+    redis_port = BBConfig.get('brainboost_server_vm_redis_private_port_0')
     
     # Wait for the Redis server to be available
     redis_client = wait_for_redis(redis_host, redis_port)
